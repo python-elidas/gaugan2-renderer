@@ -55,15 +55,19 @@ class Gaugan2Renderer:
     def create_output_dir(self):
         os.makedirs(self.output_path, exist_ok=True)
 
-    def render_image(self, file_path):
+    def render_image(self, file_path, style='example0'):
         self.driver.find_element(
             By.XPATH, '//*[@id="segmapfile"]').send_keys(file_path)
         self.driver.find_element(
             By.XPATH, '//*[@id="btnSegmapLoad"]').click()
         self.driver.find_element(
             By.XPATH, '//*[@id="render"]').click()
+        time.sleep(self.waiting_time)
+        self.driver.execute_script("document.getElementById('"+style+"').click();")
+        #self.driver.find_element(
+        #    By.XPATH, f'//*[@id="{style}"]').click()
 
-    def run(self, input_folder, output_path):
+    def run(self, input_folder, output_path, style):
         self.image_paths = glob(input_folder + "/*.png")
         self.output_path = output_path
 
@@ -76,13 +80,13 @@ class Gaugan2Renderer:
             output_image = os.path.join(self.output_path,
                                         basename)
 
-            self.render_image(file_path)
+            self.render_image(file_path, style)
             time.sleep(self.waiting_time)
             self.download_image(output_image)
             self.output_images.append(output_image)
 
         self.driver.close()
 
-    def create_video(self, output_video):
+    def create_video(self, output_video="./output.mp4"):
         images = [imageio.imread(image) for image in self.output_images]
         imageio.mimsave(output_video, images, fps=10)
